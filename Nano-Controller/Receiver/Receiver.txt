@@ -1,0 +1,48 @@
+#include SPI.h
+#include nRF24L01.h
+#include RF24.h
+#include Servo.h
+
+RF24 radio(9, 10);
+const byte address[6] = 00001;
+
+Servo servoX1;
+Servo servoY1;
+Servo servoX2; 
+
+
+void setup() {
+  Serial.begin(9600);
+  
+  servoX1.attach(8);  
+  servoY1.attach(7);
+  servoX2.attach(6); \\PINS
+
+  radio.begin();
+  radio.setPALevel(RF24_PA_MAX);
+  radio.openReadingPipe(0, address);
+  radio.startListening();
+}
+
+void loop() {
+  int joystickValues[4];
+
+  if (radio.available()) {
+    radio.read(&joystickValues, sizeof(joystickValues));
+
+    int x1 = joystickValues[0];
+    int y1 = joystickValues[1];
+    int x2 = joystickValues[2];
+
+    servoX1.write(x1);
+    servoY1.write(y1);
+    servoX2.write(x2);
+
+    Serial.print(X1 );
+    Serial.print(x1);
+    Serial.print( Y1 );
+    Serial.print(y1);
+    Serial.print( X2 );
+    Serial.println(x2);
+  }
+}

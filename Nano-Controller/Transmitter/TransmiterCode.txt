@@ -1,0 +1,59 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+RF24 radio(9, 10);
+
+const byte address[6] = "00001";
+
+const int joy1XPin = A0;
+const int joy1YPin = A1;
+const int joy2XPin = A2;
+const int joy2YPin = A3; //YOU CAN CHANGE THESE ANALOG PINS
+
+void setup() {
+  Serial.begin(9600);
+
+  for (int pin = 0; pin <= 13; pin++) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);
+  }
+
+  for (int pin = A0; pin <= A5; pin++) {
+    if (pin != joy1XPin && pin != joy1YPin && pin != joy2XPin && pin != joy2YPin) {
+      pinMode(pin, OUTPUT);
+      digitalWrite(pin, LOW);
+    }
+  }
+
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_LOW);
+  radio.stopListening();
+}
+
+void loop() {
+  int joy1X = analogRead(joy1XPin);
+  int joy1Y = analogRead(joy1YPin);
+  int joy2X = analogRead(joy2XPin);
+  int joy2Y = analogRead(joy2YPin);
+
+  int dataToSend[4];                           \\HAVENT TESTED THIS BUT IT SHOULD WORK
+  dataToSend[0] = map(joy1X, 0, 1023, 0, 180); \\I WAS PREVIOUSLY USING radio.read TO SEND DATA
+  dataToSend[1] = map(joy1Y, 0, 1023, 0, 180);  \\FOR SINGLE AXIS
+  dataToSend[2] = map(joy2X, 0, 1023, 0, 180);
+  dataToSend[3] = map(joy2Y, 0, 1023, 0, 180);  
+
+  radio.write(&dataToSend, sizeof(dataToSend));
+
+  Serial.print("Joystick 1: X=");
+  Serial.print(dataToSend[0]);
+  Serial.print(" Y=");
+  Serial.print(dataToSend[1]);
+  Serial.print(" | Joystick 2: X=");
+  Serial.print(dataToSend[2]);
+  Serial.print(" Y=");
+  Serial.println(dataToSend[3]);
+
+  delay(100);
+}
